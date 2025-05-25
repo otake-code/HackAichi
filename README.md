@@ -100,7 +100,7 @@ npm start （開発サーバ: http://localhost:3000）
 
 9．貢献者
 ・玉城（@gusuku-oknw）
-・岡田 (otake-code)
+・岡田 (@otake-code)
 ・田上（)
 ・立岩（)
 
