@@ -1,9 +1,6 @@
+# HotAICafe - リアルタイムカフェ空席モニタリングシステム
 
-# HackAichi リアルタイムカフェ空席モニタリングシステム
-
-ESP32S3搭載センサーが席の利用状況を検知し、Flaskバックエンド（Google App Engine上）へ送信。
-Reactフロントエンドで現在の空席状況や履歴を可視化することができるシステムです。
-
+ESP32-S3搭載センサーが席の利用状況を検知し、AIによるパーソナライズ表示とマイコンによるリアルタイム通信で、空席情報を可視化するシステムです。
 
 ## 目次
 
@@ -14,7 +11,7 @@ Reactフロントエンドで現在の空席状況や履歴を可視化するこ
 5. [前提環境](#前提環境)
 6. [セットアップ＆インストール](#セットアップインストール)
 
-   1. [ESP32S3 ファームウェア](#esp32s3-ファームウェア)
+   1. [ESP32-S3 ファームウェア](#esp32-s3-ファームウェア)
    2. [バックエンドサーバ](#バックエンドサーバ)
    3. [フロントエンドアプリ](#フロントエンドアプリ)
 7. [使い方](#使い方)
@@ -27,263 +24,161 @@ Reactフロントエンドで現在の空席状況や履歴を可視化するこ
 
 ## 概要
 
-* **プロジェクト名**：HackAichi リアルタイムカフェ空席モニタリングシステム
-* **目的**：ESP32S3センサーでカフェの席利用状況を検知し、リアルタイムで空席情報を可視化することで、お客様や店舗スタッフが効率的に空席状況を把握できるようにする。
-* **主な技術スタック**：
+* **プロジェクト名**：HotAICafe リアルタイムカフェ空席モニタリングシステム
+* **目的**：ESP32-S3センサーでカフェ席の入退店を検知し、AIで最適化したパーソナライズ表示とマイコンによるリアルタイム更新を可能にすることで、利用者と店舗スタッフ双方の利便性を高めます。
+* **主な技術スタック**:
 
-  * **ESP32S3（センサー側）**：顔認証カメラ＋超音波センサー
-  * **バックエンド**：Python + Flask / Google App Engine
+  * **ESP32-S3（センサー側）**：顔認証カメラ＋超音波センサー
+  * **バックエンド**：Python + Flask（Google App Engine）
   * **フロントエンド**：TypeScript + React
-
----
 
 ## 機能
 
+* **AIによるパーソナライズ表示**
+
+  * 利用者の過去の行動履歴や好みに応じた席提案
+  * 人気席や推奨席をハイライト
+* **マイコンによるリアルタイム更新**
+
+  * ESP32-S3からのセンサーデータを即時反映
+  * WebSocketでフロントエンドにライブ配信
 * **リアルタイム空席表示**
 
-  * 各店舗の現在の空席数をダッシュボードで表示
+  * ダッシュボードで現在の空席数を表示
 * **履歴グラフ**
 
-  * 過去24時間の利用推移をチャートで確認
+  * 過去24時間の座席利用推移をチャートで確認
 * **店舗除外機能**
 
-  * メンテナンス中など、任意の店舗を一覧から除外可能
+  * メンテナンス中店舗の一覧からの除外
 * **データエクスポート**
 
-  * 現在値・履歴データをJSON形式でダウンロード
-
----
+  * JSON形式で現在値・履歴データをダウンロード
 
 ## アーキテクチャ
 
 ```
-[ESP32S3センサー]
+[ESP32-S3センサー]
        ↓ HTTP POST（JSON）
-[FlaskバックエンドAPI] ── Google App Engine
+[Flaskバックエンド API] ── Google App Engine
        ↑ WebSocket／HTTP
-[ReactフロントエンドSPA]
+[Reactフロントエンド SPA]
 ```
 
-1. **ESP32S3**
+1. **ESP32-S3**
 
-   * 顔認証カメラ ＋ 超音波センサーで入退店・席利用を検知
-   * 定期的にJSON形式でバックエンドへ送信
-
+   * 顔認証カメラ＋超音波センサーで入退店と座席利用を検知
+   * 定期的にJSONでバックエンドへ送信
 2. **バックエンド（Python + Flask）**
 
-   * `analysis.py` でデータを受信・集計・保存
-   * `app.yaml` でGoogle App Engine向けのデプロイ設定
-
+   * データ受信・集計・保存
+   * WebSocketでフロントへライブ送信
 3. **フロントエンド（TypeScript + React）**
 
-   * バックエンドからライブデータを取得
-   * ダッシュボードやグラフを描画して表示
-
----
+   * ライブデータの取得とダッシュボード表示
+   * AIモデルを呼び出し、パーソナライズ結果を反映
 
 ## リポジトリ構成
 
 ```
 /
-├ .idea/                 （IDE設定ファイル等）
-├ ESP32S3/               （センサー用ファームウェア）
+├ ESP32-S3/            （センサー用ファームウェア）
 │   ├ platformio.ini
 │   └ src/
 │       └ main.cpp
-├ BackEnd/               （Flaskバックエンド）
+├ BackEnd/            （Flaskバックエンド）
 │   ├ analysis.py
 │   ├ requirements.txt
 │   └ app.yaml
-├ frontend/              （React SPA）
+├ frontend/           （React SPA）
 │   ├ public/
 │   └ src/
 ├ .gitignore
 └ README.md
 ```
 
-* `ESP32S3/`
-
-  * センサー側のファームウェアおよびPlatformIOプロジェクト
-* `BackEnd/`
-
-  * Flaskアプリケーション一式
-  * `analysis.py`：受信・集計・保存ロジック
-  * `requirements.txt`：Python依存パッケージ
-  * `app.yaml`：GAEデプロイ設定
-* `frontend/`
-
-  * Reactアプリケーション一式
-* `.gitignore`
-
-  * Git管理外とするファイルを指定
-* `README.md`
-
-  * 本ドキュメント
-
----
-
 ## 前提環境
 
-* **ESP32S3 開発環境**
-
-  * Arduino IDE または PlatformIO
-* **Python**
-
-  * バージョン 3.8 以上
-* **Node.js & npm**
-
-  * Node.js 14 以上
-* **Google Cloud SDK**
-
-  * App Engineへのデプロイに必要
-
----
+* **ESP32-S3**: PlatformIOまたはArduino IDE
+* **Python**: 3.8以上
+* **Node.js & npm**: Node.js 14以上
+* **Google Cloud SDK**: App Engineデプロイ用
 
 ## セットアップ＆インストール
 
-### ESP32S3 ファームウェア
+### ESP32-S3 ファームウェア
 
-1. プロジェクトのルートディレクトリへ移動し、ESP32S3フォルダへ移動します：
+1. `ESP32-S3/` ディレクトリへ移動
 
    ```bash
-   cd ESP32S3
+   cd ESP32-S3
    ```
-
-2. `src/main.cpp` 内の下記定義を、自身のWi-Fi情報とバックエンドURLに書き換えます：
-
-   ```cpp
-   #define WIFI_SSID       "YOUR_SSID"
-   #define WIFI_PASSWORD   "YOUR_PASSWORD"
-   #define BACKEND_URL     "https://<YOUR_BACKEND_URL>"
-   ```
-
-3. ビルド＆アップロード：
+2. `src/main.cpp` にWi-Fi情報とバックエンドURLを設定
+3. ビルド＆アップロード
 
    ```bash
    pio run --target upload
    ```
 
----
-
 ### バックエンドサーバ
 
-1. `BackEnd`ディレクトリへ移動：
-
-   ```bash
-   cd BackEnd
-   ```
-
-2. 仮想環境を作成＆有効化：
+1. `BackEnd/` ディレクトリへ移動
+2. 仮想環境作成 & 依存パッケージインストール
 
    ```bash
    python -m venv venv
-   source venv/bin/activate   # Windows の場合は `venv\Scripts\activate`
-   ```
-
-3. 依存パッケージをインストール：
-
-   ```bash
+   source venv/bin/activate
    pip install -r requirements.txt
    ```
-
-4. **ローカル起動（テスト用）**：
-
-   ```bash
-   python analysis.py
-   ```
-
-   * デフォルトではポート `8080` で起動します。
-
-5. **Google App Engineへのデプロイ**
-
-   * 事前にGCPプロジェクトを作成し、`gcloud`で認証済みであることを確認してください。
+3. ローカル起動（ポート8080）
+4. GAEデプロイ
 
    ```bash
    gcloud config set project YOUR_PROJECT_ID
    gcloud app deploy app.yaml
    ```
 
----
-
 ### フロントエンドアプリ
 
-1. `frontend`ディレクトリへ移動：
-
-   ```bash
-   cd frontend
-   ```
-
-2. 依存パッケージをインストール：
+1. `frontend/` へ移動
+2. 依存パッケージインストール
 
    ```bash
    npm install
    ```
-
-3. 必要に応じて、`src/config.ts` 内の APIエンドポイントを設定：
-
-   ```ts
-   export const API_BASE_URL = "https://<YOUR_BACKEND_URL>";
-   ```
-
-4. **開発サーバ起動**：
+3. `src/config.ts` にAPIエンドポイント設定
+4. 開発サーバ起動
 
    ```bash
    npm start
    ```
-
-   * ブラウザで `http://localhost:3000` を開くと、開発用画面が表示されます。
-
-5. **本番ビルド**：
+5. 本番ビルド
 
    ```bash
    npm run build
    ```
 
-   * 最適化された静的ファイルが `build/` ディレクトリに生成されます。
-
----
-
 ## 使い方
 
-1. **ESP32S3を起動**し、Wi-Fiに接続します。
-2. \*\*バックエンド（Flask）\*\*のログにJSON受信があるか確認します。
-3. ブラウザで**フロントエンドアプリ**にアクセスし、空席状況と履歴を確認します。
-4. 必要に応じて、各店舗の「除外」チェックをONにして表示を切り替えます。
-5. 「JSONエクスポート」ボタンから、最新データや履歴データをダウンロードできます。
-
----
+1. ESP32-S3を起動してWi-Fi接続
+2. バックエンドのログでデータ受信を確認
+3. ブラウザでフロントエンドにアクセス
+4. 「除外」チェックで店舗表示を切り替え
+5. 「JSONエクスポート」でデータダウンロード
 
 ## 設定項目
 
-* **ESP32S3（`src/main.cpp`）**
-
-  * `WIFI_SSID`
-  * `WIFI_PASSWORD`
-  * `BACKEND_URL`
-
-* **バックエンド（`analysis.py`）**
-
-  * ポート設定（デフォルト：8080）
-
-* **Google App Engine（`app.yaml`）**
-
-  * プロジェクトID
-  * サービス名など
-
-* **フロントエンド（`src/config.ts`）**
-
-  * `API_BASE_URL`（バックエンドのベースURL）
-
----
+* **ESP32-S3 (`src/main.cpp`)**: `WIFI_SSID`, `WIFI_PASSWORD`, `BACKEND_URL`
+* **バックエンド (`analysis.py`)**: ポート設定（デフォルト8080）
+* **App Engine (`app.yaml`)**: プロジェクトID、サービス名等
+* **フロントエンド (`src/config.ts`)**: `API_BASE_URL`
 
 ## 今後の改善予定
 
-* 満席／空席アラートのプッシュ通知機能追加
-* モバイルアプリ化（React Nativeなどを検討）
-* AI を用いた利用予測機能の実装
-* UI/UX の強化（ショートカット機能、複数画像表示など）
-
----
+* 満席／空席アラートのプッシュ通知
+* モバイルアプリ化 (React Native)
+* AIを用いた利用予測機能
+* UI/UX強化（ショートカット、複数画像表示など）
 
 ## 貢献者
 
@@ -292,13 +187,11 @@ Reactフロントエンドで現在の空席状況や履歴を可視化するこ
 * 田上
 * 立岩
 
----
-
 ## 連絡先
 
-ご質問やご意見は以下までお問い合わせください。
+ご質問は以下までご連絡ください。
 
-* **メールアドレス**: [gusuku.oknw@example.com](mailto:gusuku.oknw@example.com)
+* メール: [gusuku.oknw@example.com](mailto:gusuku.oknw@example.com)
 
 ---
 
